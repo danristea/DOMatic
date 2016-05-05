@@ -17,7 +17,7 @@ simple component:
         return ["div", "component mounted at : " + ctrl.time]
       }
     }
-Mounting the base module can be achieved calling UI.mount like so:
+Mounting the base component can be achieved calling UI.mount like so:
 
 UI.mount(app, document.body, initobj)
 
