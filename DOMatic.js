@@ -49,8 +49,8 @@
                     cache[index].children.push(cache[index].children[i].children.pop())
                 }
                 delete cache[index].children[i].children
-                i--
                 l = cache[index].children.length
+                i--
             }
         }
         if (cache[index].node) cache[index].node.parentNode.removeChild(cache[index].node)
