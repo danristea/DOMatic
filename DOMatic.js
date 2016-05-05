@@ -201,25 +201,25 @@
         cache.children = children
     }
 
-    function createChildren(element, data, cache, boundingNode) {
-        forEach(data, function(child, index) {
-            cache.children[index] = cache.children[index] || {}
-            if (Array.isArray(child)) {
-                if (!cache.children[index].node) {
-                    cache.children[index] = {"node": document.createElement(child[0])}
-                    element.insertBefore(cache.children[index].node, findNode(cache.children, index + 1) || boundingNode)
+    function createChildren (element, data, cache, boundingNode) {
+        for (var i = 0, l = data.length; i < l; i++) {
+            cache.children[i] = cache.children[i] || {};
+            if (Array.isArray(data[i])) {
+                if (!cache.children[i].node) {
+                    cache.children[i] = {"node": document.createElement(data[i][0])};
+                    element.insertBefore(cache.children[i].node, findNode(cache.children, i+1) || boundingNode)
                 }
-                build(element, child, cache.children[index], findNode(cache.children, index + 1) || boundingNode)
-            } else if (typeof child === 'string') {
-                if (!cache.children[index].node || cache.children[index].node.nodeValue !== child) {
-                    cache.children[index] = {"node": document.createTextNode(child)}
-                    element.insertBefore(cache.children[index].node, findNode(cache.children, index + 1) || boundingNode)
-                }
+                build(element, data[i], cache.children[i], findNode(cache.children, i+1) || boundingNode);
+            } else if (typeof data[i] === 'string') {
+                if (!cache.children[i].node || cache.children[i].node.nodeValue !== data[i]) {
+                    cache.children[i] = {"node": document.createTextNode(data[i])};
+                    element.insertBefore(cache.children[i].node, findNode(cache.children, i+1) || boundingNode);
+                };
             } else {
-                cache.children[index] = child
-                mount(child, element, findNode(cache.children, index + 1) || boundingNode)
+                cache.children[i] = data[i];
+                mount(data[i], element, findNode(cache.children, i+1) || boundingNode)
             }
-        })
+        }
     }
 
     function flattenArray(data) {
@@ -227,10 +227,11 @@
             if (Array.isArray(data[i]) && typeof data[i][0] !== 'string') {
                 var fragment = data.splice(i, 1)[0]
                 for (var index = fragment.length; index--;) data.splice(i, 0, fragment[index])
-                i--
                 l = data.length
+                i--
             }
         }
     }
+    
     window.UI = window.UI || UI
 }(typeof window !== 'undefined' ? window : this));
