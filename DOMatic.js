@@ -97,7 +97,7 @@
                 if (index == -1) return
                 if (cache[index].node) boundingNode = cache[index].node.nextSibling
                 else if (cache[index].children) boundingNode = findNode(cache[index].children, cache[index].children.length - 1).nextSibling
-                build(roots[index], views[index](ctrl), cache[index], boundingNode)
+                build(roots[index], views[index](controllers[index]), cache[index], boundingNode)
             })
         }
         UI.redraw(component.controller)
