@@ -96,10 +96,7 @@
                 var index = controllers.indexOf(arguments[0][i])
                 if (index == -1) return
                 if (cache[index].node) boundingNode = cache[index].node.nextSibling
-                else if (cache[index].children) {
-                    var lastNode = findNode(cache[index].children, cache[index].children.length - 1)
-                    if (lastNode) boundingNode = lastNode.nextSibling
-                }
+                else if (cache[index].children) boundingNode = findNode(cache[index].children, cache[index].children.length - 1).nextSibling
                 build(roots[index], views[index](controllers[index]), cache[index], boundingNode)
             }
         }
