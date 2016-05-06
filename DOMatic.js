@@ -89,18 +89,21 @@
         views.push(component.view)
         roots.push(element)
 
-        UI.redraw = function(controller) {
-            if(typeof arguments[0] === 'undefined') arguments[0] = controllers
+        X.redraw = function(controller) {
+            if (typeof arguments[0] === 'undefined') arguments[0] = controllers
             else if (!Array.isArray(arguments[0])) arguments[0] = [arguments[0]]
-            forEach(arguments[0], function(controller) {
-                var index = controllers.indexOf(controller)
+            for (var i = 0, l = arguments[0].length; i < l; i++) {
+                var index = controllers.indexOf(arguments[0][i])
                 if (index == -1) return
                 if (cache[index].node) boundingNode = cache[index].node.nextSibling
-                else if (cache[index].children) boundingNode = findNode(cache[index].children, cache[index].children.length - 1).nextSibling
+                else if (cache[index].children) {
+                    var lastNode = findNode(cache[index].children, cache[index].children.length - 1)
+                    if (lastNode) boundingNode = lastNode.nextSibling
+                }
                 build(roots[index], views[index](controllers[index]), cache[index], boundingNode)
-            })
+            }
         }
-        UI.redraw(component.controller)
+        X.redraw(component.controller)
     }
 
     // recursive function that builds DOM structure
