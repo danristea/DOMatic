@@ -147,8 +147,12 @@
         })
         forEach(Object.keys(attributes), function(key) {
             if (key.substring(0, 2) == 'on') {
+                if (typeof attributes[key] !== 'function') {
+                    throw new Error('event not a function')
+                    return
+                }
                 cache.attrs[key] = cache.attrs[key] || Function
-                if (cache.attrs[key].toString() !== attributes[key].toString()) {
+                if (cache.attrs[key] !== attributes[key]) {
                     cache.attrs[key] = cache.node[key] = attributes[key]
                 }
             } else if (attributes[key] !== cache.attrs[key]) {
