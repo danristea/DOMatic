@@ -81,7 +81,7 @@
     function mount(component, element, boundingNode) {
         var index = controllers.indexOf(component.controller)
         if (index > -1) {
-            if (component.view.toString() !== views[index].toString()) views[index] = component.view
+            if (component.view !== views[index]) views[index] = component.view
             return
         }
         cache.push({})
