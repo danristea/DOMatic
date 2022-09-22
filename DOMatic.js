@@ -1,7 +1,7 @@
 (function(window) {
     "use strict"
 
-    var X = {
+    var UI = {
         version: "v0.0.2"
     }
 
@@ -13,26 +13,6 @@
     var controllers = []
     var views = []
     var roots = []
-
-    X.ajax = function(request) {
-        var controller = this
-        var xhr = new XMLHttpRequest()
-        xhr.open(request.method, request.action, true)
-        xhr.onreadystatechange = function() {
-            if (xhr.readyState === 4) {
-                if (xhr.status >= 200 && xhr.status < 300) {
-                    if (controllers.indexOf(controller) > -1) request.success(xhr)
-                }
-                else request.error(xhr)
-            }
-        }
-        if (request.data && request.method !== "GET") {
-            xhr.setRequestHeader("Content-Type", "application/json; charset=utf-8")
-        }
-        xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest")
-        xhr.send(request.method === "GET" || typeof request.data == "undefined" ? null : request.data)
-        return xhr
-    }
 
     function getCache(controller) {
         return cache[controllers.indexOf(controller)]
@@ -86,8 +66,8 @@
 
     }
 
-    X.redraw = function () {}
-    X.mount = function (component, element, boundingNode) {
+    UI.redraw = function () {}
+    UI.mount = function (component, element, boundingNode) {
         var index = controllers.indexOf(component.controller)
         if (index > -1) {
             if (component.view !== views[index]) views[index] = component.view
@@ -98,7 +78,7 @@
         views.push(component.view)
         roots.push(element)
 
-        X.redraw = function(controller) {
+        UI.redraw = function(controller) {
             if (typeof arguments[0] === 'undefined') arguments[0] = controllers
             else if (!Array.isArray(arguments[0])) arguments[0] = [arguments[0]]
             for (var i = 0, l = arguments[0].length; i < l; i++) {
@@ -112,7 +92,7 @@
                 build(roots[index], views[index](controllers[index]), cache[index], boundingNode)
             }
         }
-        X.redraw(component.controller)
+        UI.redraw(component.controller)
     }
 
     // recursive function that builds DOM structure
@@ -238,7 +218,7 @@
                 };
             } else {
                 cache.children[i] = data[i];
-                X.mount(data[i], element, findNode(cache.children, i+1) || boundingNode)
+                UI.mount(data[i], element, findNode(cache.children, i+1) || boundingNode)
             }
         }
     }
@@ -254,5 +234,5 @@
         }
     }
 
-    window.X = window.X || X;
+    window.UI = window.UI || UI;
 }(typeof window !== 'undefined' ? window : this));
