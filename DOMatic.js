@@ -1,27 +1,43 @@
 (function(window) {
     "use strict"
 
-    var UI = {
-        version: "v0.0.1"
+    var X = {
+        version: "v0.0.2"
     }
 
     function forEach(list, f) {
         for (var i = 0; i < list.length && !f(list[i], i++);) {}
     }
 
-    var ctrl
     var cache = []
     var controllers = []
     var views = []
     var roots = []
 
-    // function that returns the cache associated with a controller
+    X.ajax = function(request) {
+        var controller = this
+        var xhr = new XMLHttpRequest()
+        xhr.open(request.method, request.action, true)
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === 4) {
+                if (xhr.status >= 200 && xhr.status < 300) {
+                    if (controllers.indexOf(controller) > -1) request.success(xhr)
+                }
+                else request.error(xhr)
+            }
+        }
+        if (request.data && request.method !== "GET") {
+            xhr.setRequestHeader("Content-Type", "application/json; charset=utf-8")
+        }
+        xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest")
+        xhr.send(request.method === "GET" || typeof request.data == "undefined" ? null : request.data)
+        return xhr
+    }
+
     function getCache(controller) {
         return cache[controllers.indexOf(controller)]
     }
 
-    // function that returns the next defined node in list starting from 0 or spefific position,
-    // resolving through nested nodes when a controller object is found
     function findNode(list, i) {
         for (var l = list.length, i = i || 0; i < l; i++) {
             if (list[i] && list[i].node) return list[i].node
@@ -33,52 +49,45 @@
         return null
     }
 
-    // function that removes a controller's associated component and its nested components from cache and dom
+    function findLastNode(list) {
+        if (list[list.length-1].node) return list[list.length-1].node
+        if (list[list.length-1].controller) {
+            var cache = getCache(list[list.length-1].controller)
+            return cache.node || findLastNode(cache.children)
+        }
+        return null
+    }
+
     function removeComponent(controller) {
         var index = controllers.indexOf(controller)
-        for (var i = 0, l = cache[index].children.length; i < l; i++) {
-            if (cache[index].children[i].controller) {
-                removeComponent(cache[index].children[i].controller)
+        var componentCache = cache.splice(index, 1)[0]
+        var componentController = controllers.splice(index, 1)
+        var componentView = views.splice(index, 1)
+        roots.splice(index, 1)
+
+        for (var i = 0, l = componentCache.children.length; i < l; i++) {
+            if (componentCache.children[i].controller) {
+                removeComponent(componentCache.children[i].controller)
                 continue
             }
-            if (cache[index].children[i].node && cache[index].children[i].node.parentNode) {
-                cache[index].children[i].node.parentNode.removeChild(cache[index].children[i].node)
+            if (componentCache.children[i].node && componentCache.children[i].node.parentNode) {
+                componentCache.children[i].node.parentNode.removeChild(componentCache.children[i].node)
             }
-            if (cache[index].children[i].children) {
-                while (cache[index].children[i].children.length > 0) {
-                    cache[index].children.push(cache[index].children[i].children.pop())
+            if (componentCache.children[i].children) {
+                while (componentCache.children[i].children.length > 0) {
+                    componentCache.children.push(componentCache.children[i].children.pop())
                 }
-                delete cache[index].children[i].children
-                l = cache[index].children.length
+                delete componentCache.children[i].children
+                l = componentCache.children.length
                 i--
             }
         }
-        if (cache[index].node) cache[index].node.parentNode.removeChild(cache[index].node)
-        cache.splice(index, 1)
-        controllers.splice(index, 1)
-        views.splice(index, 1)
-        roots.splice(index, 1)
+        if (componentCache.node) componentCache.node.parentNode.removeChild(componentCache.node)
+
     }
 
-    UI.mount = function(component, element, options) {
-        if (typeof component.controller !== 'function') {
-            throw new Error("component.controller not a function")
-            return
-        }
-        if (typeof element === 'undefined') {
-            throw new Error("cannot mount on undefined element")
-            return
-        }
-        if (element == null && controllers[0] instanceof component.controller) {
-            removeComponent(controller)
-            return
-        }
-        if (controllers[0]) removeComponent(controllers[0])
-        ctrl = new component.controller(options)
-        mount({controller: ctrl, view: component.view}, element, null)
-    };
-
-    function mount(component, element, boundingNode) {
+    X.redraw = function () {}
+    X.mount = function (component, element, boundingNode) {
         var index = controllers.indexOf(component.controller)
         if (index > -1) {
             if (component.view !== views[index]) views[index] = component.view
@@ -96,7 +105,10 @@
                 var index = controllers.indexOf(arguments[0][i])
                 if (index == -1) return
                 if (cache[index].node) boundingNode = cache[index].node.nextSibling
-                else if (cache[index].children) boundingNode = findNode(cache[index].children, cache[index].children.length - 1).nextSibling
+                else if (cache[index].children) {
+                    var lastChild = findLastNode(cache[index].children)
+                    boundingNode = lastChild? lastChild.nextSibling : null
+                }
                 build(roots[index], views[index](controllers[index]), cache[index], boundingNode)
             }
         }
@@ -198,7 +210,12 @@
                 }
             }
             if (!found) {
-                if (child.controller) removeComponent(child.controller)
+                if (child.controller) {
+                    console.log('gotta remove:')
+                    console.log(child.controller)
+                    console.log(controllers.indexOf(child.controller))
+                    removeComponent(child.controller)
+                }
                 else if (child.node) child.node.parentNode.removeChild(child.node)
             }
         })
@@ -221,7 +238,7 @@
                 };
             } else {
                 cache.children[i] = data[i];
-                mount(data[i], element, findNode(cache.children, i+1) || boundingNode)
+                X.mount(data[i], element, findNode(cache.children, i+1) || boundingNode)
             }
         }
     }
@@ -236,6 +253,6 @@
             }
         }
     }
-    
-    window.UI = window.UI || UI
+
+    window.X = window.X || X;
 }(typeof window !== 'undefined' ? window : this));
